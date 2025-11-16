@@ -27,7 +27,7 @@
         <div class="dropdown-container">
             <select id="dropdown-audiences">
                 <option value="">Presentation Audiences...</option>
-                </select>
+            </select>
         </div>
         
         <p class="or-divider">or</p>
@@ -35,7 +35,7 @@
         <div class="dropdown-container">
             <select id="dropdown-scenarios">
                 <option value="">Special Scenarios...</option>
-                </select>
+            </select>
         </div>
 
         <h2>Step 2: Enter Simulation</h2>
@@ -116,11 +116,11 @@
             const camera = document.getElementById('camera');
             const inVrSlider = document.getElementById('in-vr-slider');
 
-            // --- Populate Dropdowns from video-data.js ---
+            // --- Populate Dropdowns ---
             Object.keys(audienceVideos).forEach(key => dropdownAudiences.add(new Option(key, key)));
             Object.keys(scenarioVideos).forEach(key => dropdownScenarios.add(new Option(key, key)));
 
-            // --- Dropdown Logic (Ensure only one is selected) ---
+            // --- Dropdown Logic ---
             dropdownAudiences.addEventListener('change', () => { if (dropdownAudiences.value) dropdownScenarios.value = ''; });
             dropdownScenarios.addEventListener('change', () => { if (dropdownScenarios.value) dropdownAudiences.value = ''; });
 
@@ -131,24 +131,18 @@
                 const videoInfo = audienceVideos[selectedKey] || scenarioVideos[selectedKey];
                 if (!videoInfo) { alert('Could not find video data.'); return; }
 
-                // **Handle Safe Mode 1 (YouTube)**
                 if (safeMode1.checked) {
                     window.location.href = videoInfo.youtube;
                     return;
                 }
                 
-                // **Handle Normal VR/2D Mode**
                 homeScreen.style.display = 'none';
                 videoScreen.style.display = 'block';
 
-                // **Handle Safe Mode 3 (Pillarbox)**
-                // This must be set *before* Safe Mode 2, as it overrides it
                 if (safeMode3.checked) {
-                    camera.setAttribute('camera', 'fov', 75); // Narrow FOV
+                    camera.setAttribute('camera', 'fov', 75);
                 }
 
-                // **Handle Safe Mode 2 (Adjustable IPD)**
-                // Only show slider if SM2 is on AND SM3 is off
                 const isSafeMode2 = safeMode2.checked && !safeMode3.checked;
                 inVrSlider.setAttribute('visible', isSafeMode2);
                 inVrSlider.setAttribute('simple-slider', 'value', 0.5); 
@@ -156,70 +150,79 @@
                     camera.appendChild(inVrSlider);
                 }
 
-                // **Video Loading (Fixes black screen)**
-                videoAsset.addEventListener('canplay', () => {
-                    // 1. Play video
-                    videoAsset.play().catch(error => console.error('Video play failed:', error));
-                    
-                    // 2. Play A-Frame scene
-                    if (vrScene.hasLoaded) vrScene.play();
-                    else vrScene.addEventListener('loaded', () => vrScene.play());
-
-                    // 3. Handle Desktop Fullscreen
-                    const isMobile = vrScene.isMobile;
-                    if (!isMobile) {
-                        vrScene.setAttribute('vr-mode-ui', 'enabled', false);
-                        document.documentElement.requestFullscreen().catch(e => console.warn('Fullscreen request failed:', e));
-                    } else {
-                        vrScene.setAttribute('vr-mode-ui', 'enabled', true);
-                    }
-                }, { once: true }); // Listener runs only once
-
-                // 4. Set source and load
+                // --- UPDATED PLAYBACK LOGIC ---
+                // 1. Set the source
                 videoAsset.setAttribute('src', videoInfo.cloudflare);
+
+                // 2. Load the source
                 videoAsset.load();
+                
+                // 3. Immediately call play()
+                // This is inside the click event, so browsers trust it.
+                const playPromise = videoAsset.play();
+
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        // Playback has begun!
+                        // Now we can safely play the scene and go fullscreen.
+                        
+                        if (vrScene.hasLoaded) {
+                            vrScene.play();
+                        } else {
+                            vrScene.addEventListener('loaded', () => vrScene.play());
+                        }
+
+                        const isMobile = vrScene.isMobile;
+                        if (!isMobile) {
+                            vrScene.setAttribute('vr-mode-ui', 'enabled', false);
+                            document.documentElement.requestFullscreen().catch(e => console.warn('Fullscreen request failed:', e));
+                        } else {
+                            vrScene.setAttribute('vr-mode-ui', 'enabled', true);
+                        }
+
+                    }).catch(error => {
+                        // Playback was prevented for some reason.
+                        console.error('Video play failed:', error);
+                        alert('Video playback was blocked. Please check browser permissions.');
+                        // Send user back to home
+                        backButton.click();
+                    });
+                }
+                // --- END OF UPDATED LOGIC ---
             });
 
-            // --- "Back" Button Logic ---
+            // --- "Back" Button Logic (Unchanged) ---
             backButton.addEventListener('click', () => {
                 videoScreen.style.display = 'none';
                 homeScreen.style.display = 'block';
-                
-                // Stop and clear video
                 videoAsset.pause();
                 videoAsset.setAttribute('src', ''); 
                 videoAsset.load();
                 vrScene.pause();
-
-                // **Cleanup Safe Modes**
                 if (inVrSlider.parentNode === camera) {
                     camera.removeChild(inVrSlider);
                 }
-                camera.setAttribute('camera', 'fov', 80); // Reset FOV
-
+                camera.setAttribute('camera', 'fov', 80); 
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
                 }
             });
 
-            // --- Safe Mode 2 (IPD Slider) Logic ---
+            // --- Safe Mode 2 (IPD Slider) Logic (Unchanged) ---
             inVrSlider.addEventListener('sliderchanged', (e) => {
-                // Map slider value (0.0 to 1.0) to IPD range (-0.05 to +0.05)
                 const ipdValue = (e.detail.value * 0.1) - 0.05; 
                 const separation = parseFloat(ipdValue);
                 const cameraRig = vrScene.camera; 
-                
                 if (cameraRig && cameraRig.el.children.length >= 2) {
                     const leftEye = cameraRig.el.children[0];
                     const rightEye = cameraRig.el.children[1];
-                    const baseSeparation = 0.032; // Default half-IPD
-                    
+                    const baseSeparation = 0.032; 
                     leftEye.setAttribute('position', { x: -baseSeparation + separation, y: 0, z: 0 });
                     rightEye.setAttribute('position', { x: baseSeparation + separation, y: 0, z: 0 });
                 }
             });
 
-            // --- PWA Service Worker Registration ---
+            // --- PWA Service Worker (Unchanged) ---
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
                     navigator.serviceWorker.register('/ExplorerTest16/sw.js')
