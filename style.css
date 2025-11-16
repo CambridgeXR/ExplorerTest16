@@ -1,0 +1,183 @@
+/* Basic Reset */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+/* Home Screen Layout */
+#home-screen {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #000;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #444;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+    margin-top: 30px;
+}
+
+/* Dropdowns */
+.dropdown-container {
+    margin: 15px 0;
+}
+select {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: white;
+}
+
+/* Go Button */
+#go-button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    background-color: #007aff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+#go-button:hover {
+    background-color: #005bb5;
+}
+
+/* Optional Settings */
+.optional-title {
+    font-size: 1rem;
+    font-weight: normal;
+    color: #666;
+    margin-top: 30px;
+}
+
+.toggle-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0;
+    font-size: 1rem;
+}
+.toggle-container span {
+    margin-left: 12px;
+}
+
+/* Toggle Switch CSS */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+.switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #007aff;
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* Footer */
+footer {
+    margin-top: 40px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+/* ---------------------------------- */
+/* Video Player Screen           */
+/* ---------------------------------- */
+
+#video-screen {
+    width: 100%;
+    height: 100%;
+    /* Hidden by default, shown by JS */
+    display: none; 
+    background: #000;
+}
+
+/* Back Button (Exit video) */
+#back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    background: rgba(0, 0, 0, 0.4);
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    line-height: 44px;
+    text-align: center;
+    padding: 0;
+}
+#back-button:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+/* IPD Slider */
+#ipd-slider-container {
+    position: fixed;
+    bottom: 80px; /* Above VR button */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px 20px;
+    border-radius: 8px;
+    color: white;
+    text-align: center;
+    /* Hidden by default */
+    display: none; 
+}
+#ipd-slider {
+    width: 200px;
+}
