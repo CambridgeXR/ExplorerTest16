@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vr-explorer-v1.1';
+const CACHE_NAME = 'vr-explorer-v1.2'; // Incremented version
 
 // **IMPORTANT:** Update these paths to match your GitHub repo
 const REPO_PATH = '/ExplorerTest16/';
@@ -8,7 +8,8 @@ const ASSETS_TO_CACHE = [
     REPO_PATH + 'style.css',
     REPO_PATH + 'video-data.js',
     REPO_PATH + 'manifest.json',
-    'https://aframe.io/releases/1.5.0/aframe.min.js' // Cache the A-Frame library
+    'https://aframe.io/releases/1.5.0/aframe.min.js',
+    'https://unpkg.com/aframe-simple-slider@1.1.0/dist/aframe-simple-slider.min.js' // UPDATED
 ];
 
 // Install Event
