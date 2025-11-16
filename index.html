@@ -28,6 +28,9 @@
                 <option value="">Presentation Audiences...</option>
                 </select>
         </div>
+        
+        <p class="or-divider">or</p>
+
         <div class="dropdown-container">
             <select id="dropdown-scenarios">
                 <option value="">Special Scenarios...</option>
@@ -43,14 +46,14 @@
                 <input type="checkbox" id="safe-mode-1">
                 <span class="slider"></span>
             </label>
-            <span>Safe Mode 1 (YouTube Fallback)</span>
+            <span>Safe Mode 1</span>
         </div>
         <div class="toggle-container">
             <label class="switch">
                 <input type="checkbox" id="safe-mode-2">
                 <span class="slider"></span>
             </label>
-            <span>Safe Mode 2 (IPD Adjust)</span>
+            <span>Safe Mode 2</span>
         </div>
 
         <footer>
@@ -99,7 +102,6 @@
             const vrScene = document.getElementById('vr-scene');
 
             // --- Populate Dropdowns from video-data.js ---
-            // This makes it easy to add/remove videos
             Object.keys(audienceVideos).forEach(key => {
                 const option = new Option(key, key);
                 dropdownAudiences.add(option);
@@ -143,7 +145,6 @@
 
                 // **Handle Safe Mode 1 (YouTube)**
                 if (safeMode1.checked) {
-                    // Redirect to the YouTube URL
                     window.location.href = videoInfo.youtube;
                     return;
                 }
@@ -157,6 +158,10 @@
                 // Set the video source
                 videoAsset.setAttribute('src', videoInfo.cloudflare);
 
+                // --- FIX for Black Screen on Desktop ---
+                // Explicitly tell the video element to load the new source
+                videoAsset.load();
+
                 // Show the video player screen
                 homeScreen.style.display = 'none';
                 videoScreen.style.display = 'block';
@@ -164,7 +169,6 @@
                 // Play the video (requires a user interaction, which 'click' is)
                 videoAsset.play().catch(error => {
                     console.error('Video play failed:', error);
-                    // Might need an overlay "tap to play" button on some mobile browsers
                 });
                 
                 // A-Frame scenes are sometimes paused on creation
@@ -175,34 +179,24 @@
                 }
 
                 // **Handle Desktop Fullscreen (as requested)**
-                // This detects if the device is mobile. If NOT, it's desktop.
                 const isMobile = vrScene.isMobile;
                 if (!isMobile) {
-                    // On desktop, disable the VR button and just play 2D
                     vrScene.setAttribute('vr-mode-ui', 'enabled', false);
-                    
-                    // Trigger fullscreen on the whole window
                     document.documentElement.requestFullscreen().catch(e => {
                         console.warn('Fullscreen request failed:', e);
                     });
                 } else {
-                     // On mobile, ensure the VR button is enabled
                     vrScene.setAttribute('vr-mode-ui', 'enabled', true);
                 }
             });
 
             // --- "Back" Button Logic ---
             backButton.addEventListener('click', () => {
-                // Hide video player, show home
                 videoScreen.style.display = 'none';
                 homeScreen.style.display = 'block';
-
-                // Stop the video
                 videoAsset.pause();
-                videoAsset.setAttribute('src', ''); // Clear source
+                videoAsset.setAttribute('src', ''); 
                 vrScene.pause();
-
-                // Exit fullscreen if we're in it
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
                 }
@@ -211,17 +205,12 @@
             // --- Safe Mode 2 (IPD Slider) Logic ---
             ipdSlider.addEventListener('input', (e) => {
                 const separation = parseFloat(e.target.value);
-                const cameraRig = vrScene.camera; // This is the <a-camera> rig
+                const cameraRig = vrScene.camera; 
                 
-                // A-Frame's camera rig contains two child cameras in VR mode
-                // [0] = left eye, [1] = right eye
                 if (cameraRig && cameraRig.el.children.length >= 2) {
                     const leftEye = cameraRig.el.children[0];
                     const rightEye = cameraRig.el.children[1];
-
-                    // Default IPD is ~0.064m. We are *adding* or *subtracting*
-                    // from the default horizontal separation.
-                    const baseSeparation = 0.032; // Default half-IPD
+                    const baseSeparation = 0.032; 
                     
                     leftEye.setAttribute('position', { x: -baseSeparation + separation, y: 0, z: 0 });
                     rightEye.setAttribute('position', { x: baseSeparation + separation, y: 0, z: 0 });
@@ -231,7 +220,6 @@
             // --- PWA Service Worker Registration ---
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    // The path must be relative to the GitHub Pages repo root
                     navigator.serviceWorker.register('/ExplorerTest16/sw.js')
                         .then(reg => console.log('Service Worker registered.', reg))
                         .catch(err => console.error('Service Worker registration failed:', err));
