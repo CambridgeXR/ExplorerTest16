@@ -8,6 +8,7 @@
     <link rel="manifest" href="manifest.json">
     
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-simple-slider@1.1.0/dist/aframe-simple-slider.min.js"></script>
     
     <link rel="stylesheet" href="style.css">
 
@@ -55,6 +56,13 @@
             </label>
             <span>Safe Mode 2</span>
         </div>
+        <div class="toggle-container">
+            <label class="switch">
+                <input type="checkbox" id="safe-mode-3">
+                <span class="slider"></span>
+            </label>
+            <span>Safe Mode 3</span>
+        </div>
 
         <footer>
             <i>VR Explorer 1.1 brought to you by Cambridge VR</i>
@@ -64,19 +72,25 @@
     <div id="video-screen">
         <a-scene id="vr-scene">
             <a-assets>
-                <video id="video-src" autoplay loop playsinline crossorigin="anonymous"></video>
+                <video id="video-src" loop playsinline crossorigin="anonymous"></video>
             </a-assets>
             
             <a-videosphere src="#video-src"></a-videosphere>
 
-            </a-scene>
+            <a-entity id="camera-rig" position="0 0 0">
+                <a-camera id="camera" fov="80">
+                    <a-cursor fuse="true" fuse-timeout="1500"></a-cursor>
+                </a-camera>
+            </a-entity>
+
+            <a-entity id="in-vr-slider" position="0 -0.8 -2" visible="false" 
+                      simple-slider="width: 1.0; height: 0.1; value: 0.5"
+                      text="value: IPD Adjust; align: center; zOffset: 0.1; color: #FFF; width: 2">
+                <a-entity class="slider-thumb" geometry="primitive: plane; width: 0.1; height: 0.1" material="color: #007aff"></a-entity>
+            </a-entity>
+        </a-scene>
 
         <button id="back-button">✖</button>
-
-        <div id="ipd-slider-container">
-            <label for="ipd-slider">IPD Adjust</label>
-            <input type="range" id="ipd-slider" min="-0.05" max="0.05" step="0.001" value="0">
-        </div>
     </div>
 
 
@@ -95,122 +109,110 @@
             
             const safeMode1 = document.getElementById('safe-mode-1');
             const safeMode2 = document.getElementById('safe-mode-2');
-            const ipdSliderContainer = document.getElementById('ipd-slider-container');
-            const ipdSlider = document.getElementById('ipd-slider');
-
-            const videoAsset = document.getElementById('video-src');
+            const safeMode3 = document.getElementById('safe-mode-3');
+            
             const vrScene = document.getElementById('vr-scene');
+            const videoAsset = document.getElementById('video-src');
+            const camera = document.getElementById('camera');
+            const inVrSlider = document.getElementById('in-vr-slider');
 
             // --- Populate Dropdowns from video-data.js ---
-            Object.keys(audienceVideos).forEach(key => {
-                const option = new Option(key, key);
-                dropdownAudiences.add(option);
-            });
-
-            Object.keys(scenarioVideos).forEach(key => {
-                const option = new Option(key, key);
-                dropdownScenarios.add(option);
-            });
+            Object.keys(audienceVideos).forEach(key => dropdownAudiences.add(new Option(key, key)));
+            Object.keys(scenarioVideos).forEach(key => dropdownScenarios.add(new Option(key, key)));
 
             // --- Dropdown Logic (Ensure only one is selected) ---
-            dropdownAudiences.addEventListener('change', () => {
-                if (dropdownAudiences.value) {
-                    dropdownScenarios.value = ''; // Reset other dropdown
-                }
-            });
-
-            dropdownScenarios.addEventListener('change', () => {
-                if (dropdownScenarios.value) {
-                    dropdownAudiences.value = ''; // Reset other dropdown
-                }
-            });
+            dropdownAudiences.addEventListener('change', () => { if (dropdownAudiences.value) dropdownScenarios.value = ''; });
+            dropdownScenarios.addEventListener('change', () => { if (dropdownScenarios.value) dropdownAudiences.value = ''; });
 
             // --- "Go" Button Logic ---
             goButton.addEventListener('click', () => {
-                const selectedAudience = dropdownAudiences.value;
-                const selectedScenario = dropdownScenarios.value;
-
-                let selectedKey = selectedAudience || selectedScenario;
-                if (!selectedKey) {
-                    alert('Please select a simulation.');
-                    return;
-                }
-
-                // Find the video info from the database
+                const selectedKey = dropdownAudiences.value || dropdownScenarios.value;
+                if (!selectedKey) { alert('Please select a simulation.'); return; }
                 const videoInfo = audienceVideos[selectedKey] || scenarioVideos[selectedKey];
-                if (!videoInfo) {
-                    alert('Could not find video data.');
-                    return;
-                }
+                if (!videoInfo) { alert('Could not find video data.'); return; }
 
                 // **Handle Safe Mode 1 (YouTube)**
                 if (safeMode1.checked) {
                     window.location.href = videoInfo.youtube;
                     return;
                 }
-
-                // **Handle Normal VR/2D Mode**
                 
-                // Show IPD slider if Safe Mode 2 is on
-                ipdSliderContainer.style.display = safeMode2.checked ? 'block' : 'none';
-                ipdSlider.value = 0; // Reset slider
-
-                // Set the video source
-                videoAsset.setAttribute('src', videoInfo.cloudflare);
-
-                // --- FIX for Black Screen on Desktop ---
-                // Explicitly tell the video element to load the new source
-                videoAsset.load();
-
-                // Show the video player screen
+                // **Handle Normal VR/2D Mode**
                 homeScreen.style.display = 'none';
                 videoScreen.style.display = 'block';
 
-                // Play the video (requires a user interaction, which 'click' is)
-                videoAsset.play().catch(error => {
-                    console.error('Video play failed:', error);
-                });
-                
-                // A-Frame scenes are sometimes paused on creation
-                if (vrScene.hasLoaded) {
-                    vrScene.play();
-                } else {
-                    vrScene.addEventListener('loaded', () => vrScene.play());
+                // **Handle Safe Mode 3 (Pillarbox)**
+                // This must be set *before* Safe Mode 2, as it overrides it
+                if (safeMode3.checked) {
+                    camera.setAttribute('camera', 'fov', 75); // Narrow FOV
                 }
 
-                // **Handle Desktop Fullscreen (as requested)**
-                const isMobile = vrScene.isMobile;
-                if (!isMobile) {
-                    vrScene.setAttribute('vr-mode-ui', 'enabled', false);
-                    document.documentElement.requestFullscreen().catch(e => {
-                        console.warn('Fullscreen request failed:', e);
-                    });
-                } else {
-                    vrScene.setAttribute('vr-mode-ui', 'enabled', true);
+                // **Handle Safe Mode 2 (Adjustable IPD)**
+                // Only show slider if SM2 is on AND SM3 is off
+                const isSafeMode2 = safeMode2.checked && !safeMode3.checked;
+                inVrSlider.setAttribute('visible', isSafeMode2);
+                inVrSlider.setAttribute('simple-slider', 'value', 0.5); 
+                if (isSafeMode2) {
+                    camera.appendChild(inVrSlider);
                 }
+
+                // **Video Loading (Fixes black screen)**
+                videoAsset.addEventListener('canplay', () => {
+                    // 1. Play video
+                    videoAsset.play().catch(error => console.error('Video play failed:', error));
+                    
+                    // 2. Play A-Frame scene
+                    if (vrScene.hasLoaded) vrScene.play();
+                    else vrScene.addEventListener('loaded', () => vrScene.play());
+
+                    // 3. Handle Desktop Fullscreen
+                    const isMobile = vrScene.isMobile;
+                    if (!isMobile) {
+                        vrScene.setAttribute('vr-mode-ui', 'enabled', false);
+                        document.documentElement.requestFullscreen().catch(e => console.warn('Fullscreen request failed:', e));
+                    } else {
+                        vrScene.setAttribute('vr-mode-ui', 'enabled', true);
+                    }
+                }, { once: true }); // Listener runs only once
+
+                // 4. Set source and load
+                videoAsset.setAttribute('src', videoInfo.cloudflare);
+                videoAsset.load();
             });
 
             // --- "Back" Button Logic ---
             backButton.addEventListener('click', () => {
                 videoScreen.style.display = 'none';
                 homeScreen.style.display = 'block';
+                
+                // Stop and clear video
                 videoAsset.pause();
                 videoAsset.setAttribute('src', ''); 
+                videoAsset.load();
                 vrScene.pause();
+
+                // **Cleanup Safe Modes**
+                if (inVrSlider.parentNode === camera) {
+                    camera.removeChild(inVrSlider);
+                }
+                camera.setAttribute('camera', 'fov', 80); // Reset FOV
+
                 if (document.fullscreenElement) {
                     document.exitFullscreen();
                 }
             });
 
             // --- Safe Mode 2 (IPD Slider) Logic ---
-            ipdSlider.addEventListener('input', (e) => {
-                const separation = parseFloat(e.target.value);
+            inVrSlider.addEventListener('sliderchanged', (e) => {
+                // Map slider value (0.0 to 1.0) to IPD range (-0.05 to +0.05)
+                const ipdValue = (e.detail.value * 0.1) - 0.05; 
+                const separation = parseFloat(ipdValue);
                 const cameraRig = vrScene.camera; 
                 
                 if (cameraRig && cameraRig.el.children.length >= 2) {
                     const leftEye = cameraRig.el.children[0];
                     const rightEye = cameraRig.el.children[1];
-                    const baseSeparation = 0.032; 
+                    const baseSeparation = 0.032; // Default half-IPD
                     
                     leftEye.setAttribute('position', { x: -baseSeparation + separation, y: 0, z: 0 });
                     rightEye.setAttribute('position', { x: baseSeparation + separation, y: 0, z: 0 });
