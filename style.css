@@ -36,17 +36,29 @@ h2 {
     margin: 15px 0;
 }
 select {
-    width: 100%;
+    width: 90%; /* UPDATED: Narrower */
     padding: 12px;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: white;
+    /* Added for robust centering */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* UPDATED: Added "or" divider style */
+.or-divider {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #555;
+    margin: 10px 0;
 }
 
 /* Go Button */
 #go-button {
-    width: 100%;
+    width: 90%; /* UPDATED: Narrower */
     padding: 15px;
     font-size: 1.2rem;
     font-weight: bold;
@@ -56,6 +68,10 @@ select {
     border-radius: 8px;
     cursor: pointer;
     margin-top: 10px;
+    /* Added for robust centering */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 #go-button:hover {
     background-color: #005bb5;
@@ -63,9 +79,9 @@ select {
 
 /* Optional Settings */
 .optional-title {
-    font-size: 1rem;
-    font-weight: normal;
-    color: #666;
+    font-size: 1.2rem; /* UPDATED: Larger */
+    font-weight: bold; /* UPDATED: Darker/Bolder */
+    color: #333; /* UPDATED: Darker */
     margin-top: 30px;
 }
 
@@ -135,7 +151,6 @@ footer {
 #video-screen {
     width: 100%;
     height: 100%;
-    /* Hidden by default, shown by JS */
     display: none; 
     background: #000;
 }
@@ -175,7 +190,6 @@ footer {
     border-radius: 8px;
     color: white;
     text-align: center;
-    /* Hidden by default */
     display: none; 
 }
 #ipd-slider {
