@@ -36,19 +36,18 @@ h2 {
     margin: 15px 0;
 }
 select {
-    width: 90%; /* UPDATED: Narrower */
+    width: 90%; /* Narrower */
     padding: 12px;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     background-color: white;
-    /* Added for robust centering */
     display: block;
     margin-left: auto;
     margin-right: auto;
 }
 
-/* UPDATED: Added "or" divider style */
+/* "or" divider */
 .or-divider {
     font-size: 1rem;
     font-weight: bold;
@@ -58,7 +57,7 @@ select {
 
 /* Go Button */
 #go-button {
-    width: 90%; /* UPDATED: Narrower */
+    width: 90%; /* Narrower */
     padding: 15px;
     font-size: 1.2rem;
     font-weight: bold;
@@ -68,7 +67,6 @@ select {
     border-radius: 8px;
     cursor: pointer;
     margin-top: 10px;
-    /* Added for robust centering */
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -79,9 +77,9 @@ select {
 
 /* Optional Settings */
 .optional-title {
-    font-size: 1.2rem; /* UPDATED: Larger */
-    font-weight: bold; /* UPDATED: Darker/Bolder */
-    color: #333; /* UPDATED: Darker */
+    font-size: 1.2rem; /* Larger */
+    font-weight: bold; /* Bolder */
+    color: #333; /* Darker */
     margin-top: 30px;
 }
 
@@ -151,6 +149,7 @@ footer {
 #video-screen {
     width: 100%;
     height: 100%;
+    /* Hidden by default, shown by JS */
     display: none; 
     background: #000;
 }
@@ -178,20 +177,6 @@ footer {
     background: rgba(0, 0, 0, 0.7);
 }
 
-/* IPD Slider */
-#ipd-slider-container {
-    position: fixed;
-    bottom: 80px; /* Above VR button */
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 10px 20px;
-    border-radius: 8px;
-    color: white;
-    text-align: center;
-    display: none; 
-}
-#ipd-slider {
-    width: 200px;
-}
+/* CSS for the old HTML slider has been 
+   removed as it is now an in-VR 3D object. 
+*/
